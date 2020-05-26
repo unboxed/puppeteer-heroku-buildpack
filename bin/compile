@@ -45,28 +45,18 @@ case "$STACK" in
   "cedar-14")
     APT_FLAGS="--force-yes"
     ;;
-  "heroku-16" | "heroku-18")
+  "heroku-16" | "heroku-18" | "heroku-20")
     APT_FLAGS="--allow-downgrades --allow-remove-essential --allow-change-held-packages"
     ;;
   *)
-    error "STACK must be 'cedar-14', 'heroku-16', or 'heroku-18'"
+    error "STACK must be 'cedar-14', 'heroku-16', 'heroku-18', or 'heroku-20'"
 esac
 
 topic "Updating apt caches"
 apt-get $APT_OPTIONS update | indent
 
-for PACKAGE in $PACKAGES; do
-  if [[ $PACKAGE == *deb ]]; then
-    PACKAGE_NAME=$(basename $PACKAGE .deb)
-    PACKAGE_FILE=$APT_CACHE_DIR/archives/$PACKAGE_NAME.deb
-
-    topic "Fetching $PACKAGE"
-    curl -s -L -z $PACKAGE_FILE -o $PACKAGE_FILE $PACKAGE 2>&1 | indent
-  else
-    topic "Fetching .debs for $PACKAGE"
-    apt-get $APT_OPTIONS -y $APT_FLAGS -d install --reinstall $PACKAGE | indent
-  fi
-done
+topic "Fetching .debs for puppeteer dependencies"
+apt-get $APT_OPTIONS -y $APT_FLAGS -d install --reinstall $PACKAGES | indent
 
 mkdir -p $BUILD_DIR/.apt
 
